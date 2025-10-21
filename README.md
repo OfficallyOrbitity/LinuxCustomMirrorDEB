@@ -7,7 +7,7 @@ It allows seamless installation and updates of `.deb` packages through the stand
 ---
 
 ## 📖 Overview
-This repository acts like a traditional Debian or Ubuntu mirror but only contains **custom software** that I build and maintain.  
+This repository acts like a traditional Debian or Ubuntu mirror but only contains **custom software** that Orbitity build and maintain.  
 It’s ideal for developers, system administrators, or organizations that need to deploy private packages internally or provide easy public access to their applications.
 
 Once set up, users can add the repository to their system’s APT sources and install packages with:
