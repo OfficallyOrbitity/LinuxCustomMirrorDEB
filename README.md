@@ -1,16 +1,54 @@
-# LinuxCustomMirrorDEB
 # 🧩 Custom .deb Repository for Debian & Ubuntu
 
-The **Custom .deb Repository** is a self-hosted APT mirror designed to host and distribute custom-built Debian packages for **Debian** and **Ubuntu** systems.  
-It allows seamless installation and updates of `.deb` packages through the standard APT system, providing an easy and reliable way to share software across multiple machines or users.
+The **Custom .deb Repository** is a self-hosted APT-compatible repository designed primarily for distributing `.deb` packages on **Debian** and **Ubuntu** systems.  
+While the repository name references `.deb` files, it can also include other related resources such as shell scripts, configuration files, documentation, or archives used alongside the packages.
 
 ---
 
 ## 📖 Overview
-This repository acts like a traditional Debian or Ubuntu mirror but only contains **custom software** that Orbitity build and maintain.  
-It’s ideal for developers, system administrators, or organizations that need to deploy private packages internally or provide easy public access to their applications.
+This repository acts like a standard Debian or Ubuntu mirror but is focused on **custom and experimental software** rather than official packages.  
+It provides a simple, accessible way to host personal or organizational software for easy installation and updates through the APT package manager.
 
-Once set up, users can add the repository to their system’s APT sources and install packages with:
+Although most content consists of `.deb` packages, other files may be stored for deployment, installation, or development support.  
+All hosted content follows the Debian-style directory structure to maintain compatibility with APT.
+
+---
+
+## ⚙️ Features
+- 🧩 Works on both Debian and Ubuntu  
+- 📦 Primarily hosts `.deb` packages but supports other file types  
+- ⚙️ Fully APT-compatible directory layout (`dists/`, `Packages.gz`, etc.)  
+- 🌍 Can be hosted locally or publicly (e.g., via GitHub Pages)  
+- 🔁 Simple updates using `dpkg-scanpackages`  
+- 🧠 Great for testing, development, and private software distribution  
+
+---
+
+## 📁 Repository Structure
+my-repo/
+├── dists/
+│ └── stable/
+│ └── main/
+│ └── binary-amd64/
+│ ├── example_1.0_amd64.deb
+│ ├── setup.sh
+│ ├── readme.txt
+│ └── Packages.gz
+└── extras/
+├── scripts/
+└── configs/
+
+yaml
+Copy code
+
+---
+
+## 🚀 Usage
+### Add to APT sources:
 ```bash
+echo "deb [trusted=yes] https://<your-username>.github.io/my-repo stable main" | sudo tee /etc/apt/sources.list.d/myrepo.list
 sudo apt update
-sudo apt install <package-name>
+Install packages:
+bash
+Copy code
+sudo apt install example
