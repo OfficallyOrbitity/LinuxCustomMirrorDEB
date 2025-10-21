@@ -1,0 +1,105 @@
+#!/bin/bash
+
+# -------------------------------
+# NetworkChecker 1.2
+# Monitors a network interface and alerts when it goes up/down
+# Automatically installs itself in /usr/local/bin/NetworkChecker/
+# Creates systemd service for auto-start
+# Ensures executable and root permissions
+# -------------------------------
+
+CONFIG_FILE="$HOME/.network-checker.conf"
+INTERFACE=""
+INTERVAL=2  # seconds between checks
+INSTALL_DIR="/usr/local/bin/NetworkChecker"
+SCRIPT_PATH="$INSTALL_DIR/network-checker"
+SERVICE_FILE="/etc/systemd/system/network-checker.service"
+
+# -------------------------------
+# Step 0: Ensure root
+# -------------------------------
+if [[ "$EUID" -ne 0 ]]; then
+    echo "⚠️ Running as root is required. Trying to elevate..."
+    sudo bash "$0" "$@"
+    exit
+fi
+
+# -------------------------------
+# Step 1: Create install folder if it doesn't exist
+# -------------------------------
+if [[ ! -d "$INSTALL_DIR" ]]; then
+    echo "Creating folder $INSTALL_DIR..."
+    mkdir -p "$INSTALL_DIR"
+fi
+
+# -------------------------------
+# Step 2: Save the script to install directory
+# -------------------------------
+if [[ ! -f "$SCRIPT_PATH" ]]; then
+    echo "Installing script to $SCRIPT_PATH..."
+    cp "$0" "$SCRIPT_PATH"
+    chmod +x "$SCRIPT_PATH"
+fi
+
+# -------------------------------
+# Step 3: Interface selection
+# -------------------------------
+if [[ -f "$CONFIG_FILE" ]]; then
+    INTERFACE=$(cat "$CONFIG_FILE")
+else
+    read -rp "Enter the network interface to monitor (e.g., enp0s3): " INTERFACE
+    echo "$INTERFACE" > "$CONFIG_FILE"
+fi
+
+# -------------------------------
+# Step 4: Setup systemd service on first run
+# -------------------------------
+if [[ ! -f "$SERVICE_FILE" ]]; then
+    echo "Creating systemd service for automatic startup..."
+    tee "$SERVICE_FILE" >/dev/null <<EOL
+[Unit]
+Description=Network Interface Checker
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$SCRIPT_PATH
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
+    systemctl daemon-reload
+    systemctl enable network-checker.service
+    systemctl start network-checker.service
+    echo "✅ NetworkChecker service enabled and started!"
+    exit 0
+fi
+
+# -------------------------------
+# Step 5: Monitoring loop
+# -------------------------------
+echo "🔍 Monitoring interface $INTERFACE every $INTERVAL seconds..."
+PREV_STATE=""
+
+while true; do
+    STATE=$(cat /sys/class/net/$INTERFACE/operstate 2>/dev/null)
+
+    if [[ -z "$STATE" ]]; then
+        echo "❌ Interface $INTERFACE not found!"
+        exit 1
+    fi
+
+    if [[ "$STATE" != "$PREV_STATE" ]]; then
+        if [[ "$STATE" == "down" ]]; then
+            echo -e "\e[31m⚠️  ALERT: $INTERFACE is DOWN! ($(date))\e[0m"
+        elif [[ "$STATE" == "up" ]]; then
+            echo -e "\e[32m✅ $INTERFACE is UP again! ($(date))\e[0m"
+        fi
+        PREV_STATE="$STATE"
+    fi
+
+    sleep "$INTERVAL"
+done
