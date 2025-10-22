@@ -1,0 +1,40 @@
+#!/bin/bash
+# Real progress LXQt installer v1.2
+
+LOGFILE="/tmp/graphics-install.log"
+PACKAGES=("lubuntu-desktop" "lightdm")  # List of packages to install
+TOTAL=${#PACKAGES[@]}
+STEP=0
+
+echo "🖥️ Installing LXQt Desktop Environment..."
+echo "Logs: $LOGFILE"
+echo ""
+
+# Function to show progress
+show_progress() {
+    local progress=$1
+    local width=30
+    local filled=$((progress*width/100))
+    local empty=$((width-filled))
+    printf "\rProgress: ["
+    printf '%0.s#' $(seq 1 $filled)
+    printf '%0.s ' $(seq 1 $empty)
+    printf "] %d%%" "$progress"
+}
+
+# Update system
+sudo apt update -y >> "$LOGFILE" 2>&1
+
+# Install each package
+for pkg in "${PACKAGES[@]}"; do
+    STEP=$((STEP+1))
+    sudo DEBIAN_FRONTEND=noninteractive apt install -y "$pkg" >> "$LOGFILE" 2>&1
+    PERCENT=$((STEP*100/TOTAL))
+    show_progress $PERCENT
+done
+
+# Clean up
+sudo apt autoremove -y >> "$LOGFILE" 2>&1
+show_progress 100
+echo ""
+echo "✅ Installation complete! Reboot your system to start LXQt."
