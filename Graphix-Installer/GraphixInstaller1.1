@@ -1,16 +1,29 @@
 #!/bin/bash
-# Real progress LXQt installer v1.2
+# LXQt Installer for Ubuntu Server - Fully Working
+# Version 1.2
+# Author: Orbitity
 
+# Check for root
+if [ "$EUID" -ne 0 ]; then
+  echo "⚠️ Please run as root (sudo)"
+  exit 1
+fi
+
+# Log file
 LOGFILE="/tmp/graphics-install.log"
-PACKAGES=("lubuntu-desktop" "lightdm")  # List of packages to install
-TOTAL=${#PACKAGES[@]}
-STEP=0
+touch $LOGFILE 2>/dev/null || LOGFILE="$HOME/graphics-install.log"
 
 echo "🖥️ Installing LXQt Desktop Environment..."
 echo "Logs: $LOGFILE"
 echo ""
 
-# Function to show progress
+# Packages to install
+PACKAGES=("xorg" "lubuntu-desktop" "lightdm")
+
+TOTAL=${#PACKAGES[@]}
+STEP=0
+
+# Progress bar function
 show_progress() {
     local progress=$1
     local width=30
@@ -23,18 +36,26 @@ show_progress() {
 }
 
 # Update system
-sudo apt update -y >> "$LOGFILE" 2>&1
+apt update -y >> "$LOGFILE" 2>&1
 
 # Install each package
 for pkg in "${PACKAGES[@]}"; do
     STEP=$((STEP+1))
-    sudo DEBIAN_FRONTEND=noninteractive apt install -y "$pkg" >> "$LOGFILE" 2>&1
+    # Install package and show output in terminal & log
+    DEBIAN_FRONTEND=noninteractive apt install -y "$pkg" | tee -a "$LOGFILE"
     PERCENT=$((STEP*100/TOTAL))
     show_progress $PERCENT
 done
 
-# Clean up
-sudo apt autoremove -y >> "$LOGFILE" 2>&1
+# Autoremove unnecessary packages
+apt autoremove -y | tee -a "$LOGFILE"
 show_progress 100
 echo ""
-echo "✅ Installation complete! Reboot your system to start LXQt."
+
+# Enable GUI target
+systemctl set-default graphical.target
+systemctl enable lightdm
+systemctl start lightdm
+
+echo "✅ Installation complete!"
+echo "Reboot your system to enter the LXQt graphical desktop."
