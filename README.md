@@ -24,25 +24,6 @@ All hosted content follows the Debian-style directory structure to maintain comp
 
 ---
 
-## 📁 Repository Structure
-my-repo/
-├── dists/
-│ └── stable/
-│ └── main/
-│ └── binary-amd64/
-│ ├── example_1.0_amd64.deb
-│ ├── setup.sh
-│ ├── readme.txt
-│ └── Packages.gz
-└── extras/
-├── scripts/
-└── configs/
-
-yaml
-Copy code
-
----
-
 ## 🚀 Usage
 ### Add to APT sources:
 ```bash
