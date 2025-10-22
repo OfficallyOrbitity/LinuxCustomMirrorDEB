@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# -------------------------------------
+# Ubuntu Graphics Installer (LXQt)
+# Converts a headless Ubuntu server into a desktop system
+# Shows real percentage progress while installing
+# -------------------------------------
+
+LOGFILE="/tmp/graphics-install.log"
+
+echo "🖥️ Installing LXQt graphical desktop..."
+echo "Logs will be written to $LOGFILE"
+echo ""
+
+# Step counter
+STEP=0
+TOTAL_STEPS=5
+
+progress() {
+    STEP=$((STEP+1))
+    PERCENT=$(( STEP * 100 / TOTAL_STEPS ))
+    echo -ne "\rProgress: [$(printf '#%.0s' $(seq 1 $((PERCENT/5))))$(printf ' %.0s' $(seq $((PERCENT/5)) 20))] $PERCENT% "
+}
+
+progress; echo "Updating system..."
+sudo apt update -y >> "$LOGFILE" 2>&1
+
+progress; echo "Installing LXQt desktop (this may take a while)..."
+sudo DEBIAN_FRONTEND=noninteractive apt install -y lubuntu-desktop >> "$LOGFILE" 2>&1
+
+progress; echo "Installing LightDM display manager..."
+sudo apt install -y lightdm >> "$LOGFILE" 2>&1
+
+progress; echo "Setting LightDM as default display manager..."
+sudo debconf-set-selections <<< "lightdm shared/default-x-display-manager select lightdm"
+
+progress; echo "Cleaning up and finishing..."
+sudo apt autoremove -y >> "$LOGFILE" 2>&1
+
+echo ""
+echo "✅ Installation complete! Reboot your system to launch the LXQt desktop."
