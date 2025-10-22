@@ -1,0 +1,39 @@
+#!/bin/bash
+# GraphixInstaller 1.2 (Iconic) — Silent LXQt Installer for Ubuntu/Debian Servers
+# Created by Orbitity
+# License: Unlicense (public domain)
+
+LOG_FILE="/tmp/graphics-install.log"
+
+# Write version header to log
+echo "🖥️  GraphixInstaller 1.2 (Iconic) started at $(date '+%F %T')" >> "$LOG_FILE"
+
+# Ensure the log file is writable
+sudo touch "$LOG_FILE" && sudo chmod 666 "$LOG_FILE"
+
+# Function to update internal progress in log
+progress_log() {
+  local progress=$1
+  echo "$(date '+%F %T') Progress: $progress%" >> "$LOG_FILE"
+}
+
+# Step 1: Update system silently
+sudo apt update -y >> "$LOG_FILE" 2>&1
+progress_log 20
+
+# Step 2: Install LXQt + LightDM silently
+sudo apt install -y xorg lightdm lxqt-policykit lxqt-core lxqt-session openbox >> "$LOG_FILE" 2>&1
+progress_log 60
+
+# Step 3: Install additional LXQt tools silently
+sudo apt install -y network-manager-gnome lxqt-config lxqt-panel lxqt-runner lxqt-globalkeys >> "$LOG_FILE" 2>&1
+progress_log 85
+
+# Step 4: Enable graphical target silently
+sudo systemctl set-default graphical.target >> "$LOG_FILE" 2>&1
+sudo systemctl enable lightdm >> "$LOG_FILE" 2>&1
+sudo systemctl daemon-reexec >> "$LOG_FILE" 2>&1
+progress_log 100
+
+# Completion log
+echo "$(date '+%F %T') ✅ Installation complete! Reboot to start LXQt." >> "$LOG_FILE"
